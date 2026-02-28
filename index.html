@@ -54,6 +54,26 @@
       overflow: hidden;
     }
 
+    .heart-burst-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .heart-burst {
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      font-size: 30px;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(0.6);
+      animation: heartBurstFly 1200ms ease-out forwards;
+      color: var(--c, #b3245b);
+    }
+
+
     .confetti {
       position: absolute;
       width: 9px;
@@ -100,6 +120,18 @@
         transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
       }
     }
+    
+    @keyframes heartBurstFly {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.6);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.35);
+      }
+    }
+
 
     .card-shell {
       width: min(940px, 96vw);
@@ -621,6 +653,8 @@
 <body>
   <div class="heart-field" id="heartField"></div>
   <div class="confetti-layer" id="confettiLayer"></div>
+  <div class="heart-burst-layer" id="heartBurstLayer"></div>
+
 
   <main class="card-shell" id="cardShell">
     <div class="cover-title">
@@ -686,7 +720,7 @@
         <div class="cert-box">
           <p class="cert-name">Poonam Singh</p>
           <p class="cert-meta" id="v3ScoreLine"></p>
-          <p class="cert-issuer">Certified by Joshua</p>
+          <p class="cert-issuer">Certified by Joshua Tucker</p>
           <div class="cert-poem">
             <div>6 months in, the time does fly, now we share our first Valentine.</div>
             <div>First year in, money is tight, so I hope the photo and this card's alright.</div>
@@ -695,7 +729,7 @@
           <div class="cert-signatures">
             <div class="sig-column">
               <div class="sig-label">Issued by</div>
-              <div class="sig-name">Joshua</div>
+              <div class="sig-name">Joshua Tucker</div>
               <img class="sig-print" src="signature.png" alt="Joshua signature" />
             </div>
             <div class="sig-column">
@@ -720,6 +754,7 @@
   <script>
     const heartField = document.getElementById("heartField");
     const confettiLayer = document.getElementById("confettiLayer");
+    const heartBurstLayer = document.getElementById("heartBurstLayer");
     const cardShell = document.getElementById("cardShell");
 
     function addHeart() {
@@ -744,7 +779,7 @@
     setTimeout(() => {
       cardShell.classList.add("opened");
       startV2Sequence();
-    }, 3000);
+    }, 5000);
 
     const noBtn = document.getElementById("noBtn");
     const yesBtn = document.getElementById("yesBtn");
@@ -834,6 +869,24 @@
         setTimeout(() => piece.remove(), 1400);
       }
     }
+
+    function burstBigHeart() {
+      const colors = ["#b3245b", "#f28ab2", "#5f1e38", "#ff6fa3", "#ffffff"];
+      const pieceCount = 55;
+      for (let i = 0; i < pieceCount; i += 1) {
+        const h = document.createElement("span");
+        h.className = "heart-burst";
+        h.textContent = Math.random() > 0.35 ? "❤" : "♡";
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 120 + Math.random() * 300;
+        h.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        h.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+        h.style.setProperty("--c", colors[Math.floor(Math.random() * colors.length)]);
+        heartBurstLayer.appendChild(h);
+        setTimeout(() => h.remove(), 1300);
+      }
+    }
+
 
     function showV2Step(step) {
       v2LoadingStep.classList.remove("active");
@@ -932,6 +985,7 @@
         cardShell.classList.add("v3-mode");
         v1Content.classList.add("hidden");
         v3Content.classList.add("active");
+        burstBigHeart();
         burstConfetti();
         v3TailLine.textContent = getV3TailLine(finalLoveScore);
         v3ScoreLine.textContent = `Final love score: ${finalLoveScore}/100`;
