@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Valentines Card</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;700;800&display=swap");
+
+    :root {
+      --bg-1: #ffe9f0;
+      --bg-2: #ffcddd;
+      --bg-3: #ffadc5;
+      --wine: #5f1e38;
+      --berry: #b3245b;
+      --berry-deep: #891947;
+      --card: #fff8fb;
+      --line: rgba(137, 25, 71, 0.18);
+      --shadow: 0 22px 52px rgba(95, 30, 56, 0.24);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      color: #30111f;
+      overflow: hidden;
+      background:
+        radial-gradient(900px 640px at 10% 0%, rgba(255, 225, 236, 0.95), transparent 60%),
+        radial-gradient(1000px 700px at 95% 10%, rgba(255, 188, 209, 0.65), transparent 58%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+      padding: 20px;
+    }
+
+    .heart-field {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 9px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0.95;
+      transform: translate(0, 0) rotate(0deg);
+      animation: confettiFly 1300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      background: var(--c, #b3245b);
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 16px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      filter: drop-shadow(0 4px 10px rgba(95, 30, 56, 0.2));
+    }
+
+    @keyframes floatHeart {
+      0% {
+        transform: translateY(0) scale(0.8) rotate(0deg);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.55;
+      }
+      85% {
+        opacity: 0.55;
+      }
+      100% {
+        transform: translateY(-130vh) scale(1.2) rotate(18deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes confettiFly {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+      }
+    }
+
+    .card-shell {
+      width: min(940px, 96vw);
+      min-height: 660px;
+      border-radius: 26px;
+      background: rgba(248, 237, 230, 0.93);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .card-shell.v3-mode {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    .cover-title {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 3;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .card-shell.opened .cover-title {
+      opacity: 0;
+    }
+
+    .v1-content {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 24px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    .v1-content.hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    .v1-content.transitioning-out {
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .card-shell.opened .v1-content {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      transition-delay: 0.45s;
+    }
+
+    .card-shell.opened .v1-content.hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition-delay: 0s;
+    }
+
+    .door {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: linear-gradient(145deg, #ffd9e7, #ffc0d6);
+      border: 1px solid rgba(137, 25, 71, 0.18);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.7s ease, opacity 0.55s ease;
+      z-index: 2;
+    }
+
+    .door.left {
+      left: 0;
+      border-right: 1px solid rgba(137, 25, 71, 0.25);
+      border-radius: 26px 0 0 26px;
+    }
+
+    .door.right {
+      right: 0;
+      border-left: 1px solid rgba(137, 25, 71, 0.25);
+      border-radius: 0 26px 26px 0;
+    }
+
+    .card-shell.opened .door.left {
+      transform: translateX(-102%);
+      opacity: 0;
+    }
+
+    .card-shell.opened .door.right {
+      transform: translateX(102%);
+      opacity: 0;
+    }
+
+    .door-inner {
+      max-width: 260px;
+    }
+
+    .hero {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: 1.14;
+      color: var(--wine);
+      text-shadow: 0 8px 18px rgba(95, 30, 56, 0.14);
+    }
+
+    .hero-name {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      color: var(--wine);
+      font-size: clamp(30px, 4.7vw, 44px);
+      line-height: 1.06;
+    }
+
+    .hint {
+      margin: 8px 0 0;
+      color: rgba(48, 17, 31, 0.75);
+      font-size: 15px;
+      min-height: 22px;
+      font-weight: 700;
+    }
+
+    .btn-row {
+      margin-top: 18px;
+      min-height: 128px;
+      width: min(520px, 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-yes {
+      color: #fff;
+      background: linear-gradient(135deg, var(--berry), var(--berry-deep));
+      box-shadow: 0 10px 20px rgba(137, 25, 71, 0.26);
+      transition: transform 0.2s ease;
+    }
+
+    .btn-no {
+      color: var(--wine);
+      background: #ffeaf2;
+      border: 1px solid rgba(95, 30, 56, 0.2);
+      transition: transform 0s;
+    }
+
+    .final {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(95, 30, 56, 0.16);
+      border-radius: 12px;
+      background: #fff3f8;
+      color: var(--wine);
+      font-weight: 700;
+      display: none;
+      max-width: 560px;
+    }
+
+    .final.visible {
+      display: block;
+    }
+
+    .v1-content.result-mode .final {
+      max-width: 640px;
+      width: min(640px, 100%);
+      padding: 16px 18px;
+    }
+
+    .final-top {
+      margin: 0 0 10px;
+    }
+
+    .meter-wrap {
+      width: min(540px, 100%);
+      height: 16px;
+      border-radius: 999px;
+      background: #f3d8e3;
+      overflow: hidden;
+      border: 1px solid rgba(95, 30, 56, 0.2);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 100%;
+      background: hsl(120 65% 42%);
+      transition: width 0.06s linear, background-color 0.06s linear;
+    }
+
+    .meter-readout {
+      margin-top: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: rgba(48, 17, 31, 0.86);
+    }
+
+    .final-outcome {
+      margin: 10px 0 0;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--berry-deep);
+    }
+
+    .next-btn {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .next-btn.visible {
+      display: block;
+    }
+
+    .v2-content {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .v2-content.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .v3-content {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .v3-content.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .v2-panel {
+      width: min(640px, 100%);
+      background: #fff3f8;
+      border: 1px solid rgba(95, 30, 56, 0.16);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+
+    .v3-panel {
+      width: min(860px, 100%);
+      background: #fff3f8;
+      border: 1px solid rgba(95, 30, 56, 0.16);
+      border-radius: 14px;
+      padding: 24px 30px;
+    }
+
+    .v2-step {
+      display: none;
+    }
+
+    .v2-step.active {
+      display: block;
+    }
+
+    .loading-percent {
+      margin-top: 8px;
+      font-weight: 800;
+      color: var(--berry-deep);
+    }
+
+    .error-title {
+      margin: 4px 0 8px;
+      color: #8a1025;
+      font-size: 28px;
+      font-family: "Fraunces", Georgia, serif;
+    }
+
+    .error-copy {
+      margin: 0 0 14px;
+      color: rgba(48, 17, 31, 0.8);
+      font-weight: 700;
+    }
+
+    .declaration-copy {
+      margin: 10px 0 14px;
+      font-weight: 700;
+      color: rgba(48, 17, 31, 0.82);
+    }
+
+    .quote-pill {
+      margin: 10px auto 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(95, 30, 56, 0.18);
+      background: #fff;
+      font-weight: 800;
+      color: var(--wine);
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .sig-wrap {
+      margin-top: 8px;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .sig-canvas {
+      width: min(520px, 100%);
+      height: 150px;
+      border-radius: 12px;
+      border: 2px dashed rgba(95, 30, 56, 0.25);
+      background: #fff;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .sig-tools {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: min(520px, 100%);
+    }
+
+    .sig-tools .btn {
+      flex: 1 1 0;
+      padding: 11px 16px;
+      margin-top: 0;
+    }
+
+    .final-note {
+      margin: 12px 0 0;
+      display: grid;
+      gap: 8px;
+      color: rgba(48, 17, 31, 0.9);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .final-tail {
+      margin-top: 12px;
+      color: var(--berry-deep);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .cert-title {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(30px, 5vw, 42px);
+      color: var(--wine);
+    }
+
+    .cert-sub {
+      margin: 4px 0 12px;
+      font-weight: 800;
+      color: rgba(48, 17, 31, 0.76);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .cert-box {
+      margin-top: 8px;
+      border: 2px solid rgba(95, 30, 56, 0.24);
+      border-radius: 14px;
+      background: linear-gradient(160deg, #fff7fb, #f9edf4);
+      padding: 20px 22px 24px;
+    }
+
+    .cert-name {
+      margin: 0;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(30px, 5vw, 42px);
+      color: var(--berry-deep);
+    }
+
+    .cert-meta {
+      margin-top: 6px;
+      font-weight: 800;
+      color: rgba(48, 17, 31, 0.8);
+    }
+
+    .cert-issuer {
+      margin: 8px 0 0;
+      color: rgba(48, 17, 31, 0.82);
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .cert-poem {
+      margin: 14px 0 0;
+      display: grid;
+      gap: 8px;
+      color: rgba(48, 17, 31, 0.9);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .cert-tail {
+      margin-top: 10px;
+      color: var(--berry-deep);
+      font-weight: 800;
+    }
+
+    .sig-print-wrap {
+      margin-top: 16px;
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+    }
+
+    .cert-signatures {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sig-column {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+    }
+
+    .sig-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(48, 17, 31, 0.72);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .sig-name {
+      font-weight: 800;
+      color: rgba(48, 17, 31, 0.9);
+    }
+
+    .sig-note {
+      margin-top: 4px;
+      font-size: 12px;
+      color: rgba(48, 17, 31, 0.7);
+      font-weight: 700;
+    }
+
+    .sig-print {
+      width: min(280px, 100%);
+      height: 84px;
+      object-fit: contain;
+      border-bottom: 2px solid rgba(95, 30, 56, 0.25);
+      padding-bottom: 2px;
+      mix-blend-mode: multiply;
+    }
+
+    @media (max-width: 620px) {
+      .card-shell {
+        min-height: 560px;
+      }
+
+      .btn-row {
+        min-height: 180px;
+      }
+
+      .btn {
+        width: auto;
+      }
+
+      .cert-signatures {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="heart-field" id="heartField"></div>
+  <div class="confetti-layer" id="confettiLayer"></div>
+
+  <main class="card-shell" id="cardShell">
+    <div class="cover-title">
+      <h1 class="hero">Happy Valentines <span class="hero-name">Poonam!</span></h1>
+    </div>
+
+    <section class="v1-content hidden" id="v1Content">
+      <h2 class="title" id="mainTitle">Will you be my Valentine?</h2>
+      <p class="hint" id="statusLine"></p>
+
+      <div class="btn-row" id="buttonArea">
+        <button class="btn btn-yes" id="yesBtn" type="button">YES 💗</button>
+        <button class="btn btn-no" id="noBtn" type="button">NO 😌</button>
+      </div>
+
+      <div class="final" id="finalLine">
+        <p class="final-top" id="finalTop">Results incoming...</p>
+        <div class="meter-wrap" aria-hidden="true">
+          <div class="meter-fill" id="loveMeterFill"></div>
+        </div>
+        <div class="meter-readout" id="loveMeterReadout">Calculating love score...</div>
+        <p class="final-outcome" id="finalOutcome"></p>
+      </div>
+    </section>
+
+    <section class="v2-content" id="v2Content">
+      <div class="v2-panel">
+        <div class="v2-step active" id="v2LoadingStep">
+          <h2 class="title">Reconnecting...</h2>
+          <p class="declaration-copy">Please wait while we restore romantic sync.</p>
+          <div class="meter-wrap" aria-hidden="true">
+            <div class="meter-fill" id="v2LoadFill"></div>
+          </div>
+          <div class="loading-percent" id="v2LoadPercent">0%</div>
+        </div>
+
+        <div class="v2-step" id="v2ErrorStep">
+          <h3 class="error-title">Error 404</h3>
+          <p class="error-copy">Connection lost at 99%. Unexpected emotional firewall.</p>
+          <button class="btn btn-yes" id="v2RetryBtn" type="button">Attempt again?</button>
+        </div>
+
+        <div class="v2-step" id="v2DeclarationStep">
+          <h2 class="title">Declaration Page</h2>
+          <p class="declaration-copy">To restore connection, please acknowledge that:</p>
+          <p class="quote-pill">"Joshua is the best boyfriend and loves you the most"</p>
+          <p class="declaration-copy">Signature required below.</p>
+          <div class="sig-wrap">
+            <canvas class="sig-canvas" id="signatureCanvas"></canvas>
+            <div class="sig-tools">
+              <button class="btn btn-no" id="clearSigBtn" type="button">Clear Signature</button>
+              <button class="btn btn-yes next-btn" id="v2ContinueBtn" type="button">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="v3-content" id="v3Content">
+      <div class="v3-panel">
+        <h2 class="cert-title">Best Girlfriend Certificate</h2>
+        <p class="cert-sub">Valentines 2026</p>
+        <div class="cert-box">
+          <p class="cert-name">Poonam Singh</p>
+          <p class="cert-meta" id="v3ScoreLine"></p>
+          <p class="cert-issuer">Certified by Joshua</p>
+          <div class="cert-poem">
+            <div>6 months in, the time does fly, now we share our first Valentine.</div>
+            <div>First year in, money is tight, so I hope the photo and this card's alright.</div>
+            <div class="cert-tail" id="v3TailLine"></div>
+          </div>
+          <div class="cert-signatures">
+            <div class="sig-column">
+              <div class="sig-label">Issued by</div>
+              <div class="sig-name">Joshua</div>
+              <img class="sig-print" src="signature.png" alt="Joshua signature" />
+            </div>
+            <div class="sig-column">
+              <div class="sig-label">Bestest Girlfriend</div>
+              <div class="sig-name">Poonam Singh</div>
+              <img class="sig-print" id="v3SignaturePrint" alt="Poonam signature" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="door left">
+      <div class="door-inner"></div>
+    </section>
+
+    <section class="door right" aria-hidden="true">
+      <div class="door-inner"></div>
+    </section>
+  </main>
+
+  <script>
+    const heartField = document.getElementById("heartField");
+    const confettiLayer = document.getElementById("confettiLayer");
+    const cardShell = document.getElementById("cardShell");
+
+    function addHeart() {
+      const heart = document.createElement("span");
+      heart.className = "heart";
+      heart.textContent = Math.random() > 0.45 ? "❤" : "♡";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.top = "100vh";
+      heart.style.animationDuration = 7 + Math.random() * 8 + "s";
+      heart.style.animationDelay = Math.random() * 2 + "s";
+      heart.style.fontSize = 12 + Math.random() * 18 + "px";
+      heart.style.color = Math.random() > 0.5 ? "rgba(179,36,91,0.62)" : "rgba(137,25,71,0.5)";
+      heartField.appendChild(heart);
+      setTimeout(() => heart.remove(), 17000);
+    }
+
+    for (let i = 0; i < 28; i += 1) {
+      setTimeout(addHeart, i * 260);
+    }
+    setInterval(addHeart, 460);
+
+    setTimeout(() => {
+      cardShell.classList.add("opened");
+      startV2Sequence();
+    }, 3000);
+
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const v1Content = document.getElementById("v1Content");
+    const mainTitle = document.getElementById("mainTitle");
+    const buttonArea = document.getElementById("buttonArea");
+    const statusLine = document.getElementById("statusLine");
+    const finalLine = document.getElementById("finalLine");
+    const finalTop = document.getElementById("finalTop");
+    const loveMeterFill = document.getElementById("loveMeterFill");
+    const loveMeterReadout = document.getElementById("loveMeterReadout");
+    const finalOutcome = document.getElementById("finalOutcome");
+    const v2Content = document.getElementById("v2Content");
+    const v2LoadingStep = document.getElementById("v2LoadingStep");
+    const v2ErrorStep = document.getElementById("v2ErrorStep");
+    const v2DeclarationStep = document.getElementById("v2DeclarationStep");
+    const v2LoadFill = document.getElementById("v2LoadFill");
+    const v2LoadPercent = document.getElementById("v2LoadPercent");
+    const v2RetryBtn = document.getElementById("v2RetryBtn");
+    const signatureCanvas = document.getElementById("signatureCanvas");
+    const clearSigBtn = document.getElementById("clearSigBtn");
+    const v2ContinueBtn = document.getElementById("v2ContinueBtn");
+    const v3Content = document.getElementById("v3Content");
+    const v3TailLine = document.getElementById("v3TailLine");
+    const v3ScoreLine = document.getElementById("v3ScoreLine");
+    const v3SignaturePrint = document.getElementById("v3SignaturePrint");
+    let noModeActive = false;
+    let noBaseX = 0;
+    let noBaseY = 0;
+    let noOffsetX = 0;
+    let noOffsetY = 0;
+    let lastTeleportAt = 0;
+    let noAttemptCount = 0;
+    let finalLoveScore = 100;
+    let signatureImageData = "";
+    let yesScale = 1;
+    let loveRevealDone = false;
+    let messageIndex = 0;
+    let nextMessageSwapAt = 1;
+    const noMessages = [
+      "No way did you just try and press no.",
+      "You're still trying?!",
+      "It's hard not to take this personally.",
+      "Go on, see if you can get it.",
+      "Oh, that time was close.",
+      "BORING.",
+      "This is commitment, I respect it.",
+      "No button says no to you.",
+      "You nearly had it... not really.",
+      "The universe keeps selecting YES."
+    ];
+    const milestoneMessages = [
+      "Five attempts already. Focus is impressive.",
+      "Ten attempts. This is becoming a hobby.",
+      "Fifteen attempts. The No button is nervous now.",
+      "Twenty attempts. This is elite persistence.",
+      "Twenty-five attempts. I'm trying not to take this personally.",
+      "Thirty attempts. You are absolutely committed to the bit.",
+      "Thirty-five attempts. At this point, I'm slightly offended.",
+      "Forty attempts. The Yes button is feeling ignored.",
+      "Forty-five attempts. This is very bold behavior.",
+      "Fifty attempts. Fine. You win the stubbornness award."
+    ];
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function burstConfetti() {
+      const colors = ["#b3245b", "#f28ab2", "#5f1e38", "#f3c36b", "#e45f8a", "#ffffff"];
+      const pieceCount = 120;
+      for (let i = 0; i < pieceCount; i += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 120 + Math.random() * 420;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance + 120;
+        const rot = (Math.random() * 900 - 450) + "deg";
+        piece.style.left = "50%";
+        piece.style.top = "52%";
+        piece.style.setProperty("--dx", `${dx}px`);
+        piece.style.setProperty("--dy", `${dy}px`);
+        piece.style.setProperty("--rot", rot);
+        piece.style.setProperty("--c", colors[Math.floor(Math.random() * colors.length)]);
+        confettiLayer.appendChild(piece);
+        setTimeout(() => piece.remove(), 1400);
+      }
+    }
+
+    function showV2Step(step) {
+      v2LoadingStep.classList.remove("active");
+      v2ErrorStep.classList.remove("active");
+      v2DeclarationStep.classList.remove("active");
+      step.classList.add("active");
+    }
+
+    function teleportNoAwayFromCursor(cursorX, cursorY) {
+      const now = Date.now();
+      if (now - lastTeleportAt < 90) {
+        return;
+      }
+      lastTeleportAt = now;
+
+      const areaRect = buttonArea.getBoundingClientRect();
+      const noWidth = noBtn.offsetWidth;
+      const noHeight = noBtn.offsetHeight;
+      const maxX = Math.max(0, areaRect.width - noWidth);
+      const maxY = Math.max(0, areaRect.height - noHeight);
+
+      let bestX = 0;
+      let bestY = 0;
+      let bestDistance = -1;
+
+      for (let i = 0; i < 28; i += 1) {
+        const candidateX = Math.random() * maxX;
+        const candidateY = Math.random() * maxY;
+        const candidateCenterX = areaRect.left + candidateX + noWidth / 2;
+        const candidateCenterY = areaRect.top + candidateY + noHeight / 2;
+        const distance = Math.hypot(candidateCenterX - cursorX, candidateCenterY - cursorY);
+
+        if (distance > bestDistance) {
+          bestDistance = distance;
+          bestX = candidateX;
+          bestY = candidateY;
+        }
+      }
+
+      noOffsetX = bestX - noBaseX;
+      noOffsetY = bestY - noBaseY;
+      noBtn.style.transform = `translate(${noOffsetX}px, ${noOffsetY}px)`;
+    }
+
+    function randomSwapStep() {
+      return Math.random() < 0.5 ? 2 : 3;
+    }
+
+    function updateLoveMeter(value) {
+      const clamped = clamp(value, 0, 100);
+      const normalized = clamped / 100;
+      const hue = Math.pow(normalized, 2) * 120;
+      loveMeterFill.style.width = clamped + "%";
+      loveMeterFill.style.backgroundColor = `hsl(${hue} 78% 44%)`;
+    }
+
+    function getOutcomeMessage(attempts) {
+      if (attempts === 0) {
+        return "Congratulations, you're getting spoilt today.";
+      }
+      if (attempts <= 5) {
+        return "Okay, I respect your curiosity.";
+      }
+      if (attempts <= 10) {
+        return "Okay, starting to get worried there.";
+      }
+      if (attempts <= 15) {
+        return "Well, this saves me from getting you a fancy dinner.";
+      }
+      if (attempts <= 20) {
+        return "Well don't I feel foolish.";
+      }
+      return "I don't know why I bother.";
+    }
+
+    function getResultHeading(score) {
+      if (score >= 95 && score <= 100) {
+        return "Congratulations! Correct choice made!";
+      }
+      return "Results are in!";
+    }
+
+    function getV3TailLine(score) {
+      if (score >= 80) {
+        return "Next year though, I can promise you this: you'll be spoilt with gifts and more dogs to kiss.";
+      }
+      if (score >= 60) {
+        return "Next year though, I can promise you this: you'll be spoilt with gifts and a new pair of tits.";
+      }
+      return "Next year though, you'll get nout because your results were shit.";
+    }
+
+    function openV3Page() {
+      v1Content.classList.add("transitioning-out");
+      setTimeout(() => {
+        cardShell.classList.add("v3-mode");
+        v1Content.classList.add("hidden");
+        v3Content.classList.add("active");
+        burstConfetti();
+        v3TailLine.textContent = getV3TailLine(finalLoveScore);
+        v3ScoreLine.textContent = `Final love score: ${finalLoveScore}/100`;
+        if (signatureImageData) {
+          v3SignaturePrint.src = signatureImageData;
+        }
+      }, 450);
+    }
+
+    function registerNoAttempt() {
+      noAttemptCount += 1;
+      if (noAttemptCount % 3 === 0) {
+        yesScale *= 1.06;
+        yesBtn.style.transform = `scale(${yesScale})`;
+      }
+      if (noAttemptCount >= nextMessageSwapAt) {
+        if (noAttemptCount > 1) {
+          messageIndex = (messageIndex + 1) % noMessages.length;
+        }
+        nextMessageSwapAt += randomSwapStep();
+      }
+      statusLine.textContent = noMessages[messageIndex];
+
+      if (noAttemptCount % 5 === 0) {
+        const milestoneIndex = Math.floor(noAttemptCount / 5) - 1;
+        const cappedIndex = Math.min(milestoneIndex, milestoneMessages.length - 1);
+        const template = milestoneMessages[cappedIndex];
+        statusLine.textContent = `${template} (${noAttemptCount} attempts)`;
+      }
+    }
+
+    function activateNoEvasion(cursorX, cursorY) {
+      if (!noModeActive) {
+        const areaRect = buttonArea.getBoundingClientRect();
+        const noRect = noBtn.getBoundingClientRect();
+        noBaseX = noRect.left - areaRect.left;
+        noBaseY = noRect.top - areaRect.top;
+        noModeActive = true;
+        noBtn.style.pointerEvents = "none";
+      }
+      registerNoAttempt();
+      teleportNoAwayFromCursor(cursorX, cursorY);
+    }
+
+    buttonArea.addEventListener("mousemove", (event) => {
+      if (!noModeActive) {
+        return;
+      }
+      const noRect = noBtn.getBoundingClientRect();
+      const proximity = 10;
+      const insideDangerZone =
+        event.clientX > noRect.left - proximity &&
+        event.clientX < noRect.right + proximity &&
+        event.clientY > noRect.top - proximity &&
+        event.clientY < noRect.bottom + proximity;
+
+      if (insideDangerZone) {
+        registerNoAttempt();
+        teleportNoAwayFromCursor(event.clientX, event.clientY);
+      }
+    });
+
+    noBtn.addEventListener("mouseenter", (event) => {
+      activateNoEvasion(event.clientX, event.clientY);
+    });
+    noBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      activateNoEvasion(event.clientX, event.clientY);
+    });
+
+    yesBtn.addEventListener("click", () => {
+      if (loveRevealDone) {
+        return;
+      }
+      loveRevealDone = true;
+      buttonArea.style.display = "none";
+      v1Content.classList.add("result-mode");
+      mainTitle.textContent = "She said yes!";
+      statusLine.textContent = "";
+      finalLine.classList.add("visible");
+      const finalScore = clamp(100 - noAttemptCount, 0, 100);
+      finalLoveScore = finalScore;
+      finalTop.textContent = getResultHeading(finalScore);
+      finalOutcome.textContent = "";
+      let current = 100;
+      updateLoveMeter(current);
+      loveMeterReadout.textContent = "Live love score: 100/100";
+
+      setTimeout(() => {
+        const timer = setInterval(() => {
+          current -= 1;
+          const liveScore = Math.max(current, finalScore);
+          updateLoveMeter(liveScore);
+          loveMeterReadout.textContent = `Live love score: ${liveScore}/100`;
+          if (current <= finalScore) {
+            clearInterval(timer);
+            loveMeterReadout.textContent = `Love today: ${finalScore}/100.`;
+            finalOutcome.textContent = getOutcomeMessage(noAttemptCount);
+            setTimeout(openV3Page, 2000);
+          }
+        }, 100);
+      }, 1000);
+    });
+
+    function startV2Sequence() {
+      v1Content.classList.add("hidden");
+      v2Content.classList.add("active");
+      showV2Step(v2LoadingStep);
+
+      let progress = 0;
+      v2LoadFill.style.width = "0%";
+      v2LoadPercent.textContent = "0%";
+
+      const loader = setInterval(() => {
+        if (progress < 99) {
+          progress += progress < 80 ? 4 : 1;
+          progress = Math.min(progress, 99);
+          v2LoadFill.style.width = `${progress}%`;
+          v2LoadPercent.textContent = `${progress}%`;
+          return;
+        }
+        clearInterval(loader);
+        setTimeout(() => {
+          showV2Step(v2ErrorStep);
+        }, 1200);
+      }, 130);
+    }
+
+    v2RetryBtn.addEventListener("click", () => {
+      showV2Step(v2DeclarationStep);
+      initSignatureCanvas();
+    });
+
+    v2ContinueBtn.addEventListener("click", () => {
+      cardShell.classList.remove("v3-mode");
+      if (sigStarted) {
+        signatureImageData = signatureCanvas.toDataURL("image/png");
+      }
+      v2Content.classList.remove("active");
+      v1Content.classList.remove("transitioning-out");
+      v1Content.classList.remove("hidden");
+      showV2Step(v2LoadingStep);
+    });
+
+    let sigReady = false;
+    let sigDrawing = false;
+    let sigStarted = false;
+    let sigCtx;
+
+    function resizeSignatureCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      const bounds = signatureCanvas.getBoundingClientRect();
+      signatureCanvas.width = Math.floor(bounds.width * ratio);
+      signatureCanvas.height = Math.floor(bounds.height * ratio);
+      sigCtx = signatureCanvas.getContext("2d");
+      sigCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      sigCtx.lineWidth = 2.2;
+      sigCtx.lineJoin = "round";
+      sigCtx.lineCap = "round";
+      sigCtx.strokeStyle = "#5f1e38";
+      sigCtx.clearRect(0, 0, bounds.width, bounds.height);
+      sigStarted = false;
+      v2ContinueBtn.classList.remove("visible");
+    }
+
+    function initSignatureCanvas() {
+      if (sigReady) {
+        return;
+      }
+      sigReady = true;
+      resizeSignatureCanvas();
+    }
+
+    function pointFromEvent(event) {
+      const bounds = signatureCanvas.getBoundingClientRect();
+      return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    }
+
+    signatureCanvas.addEventListener("pointerdown", (event) => {
+      if (!sigCtx) {
+        initSignatureCanvas();
+      }
+      sigDrawing = true;
+      const p = pointFromEvent(event);
+      sigCtx.beginPath();
+      sigCtx.moveTo(p.x, p.y);
+      event.preventDefault();
+    });
+
+    signatureCanvas.addEventListener("pointermove", (event) => {
+      if (!sigDrawing || !sigCtx) {
+        return;
+      }
+      const p = pointFromEvent(event);
+      sigCtx.lineTo(p.x, p.y);
+      sigCtx.stroke();
+      sigStarted = true;
+      v2ContinueBtn.classList.add("visible");
+      event.preventDefault();
+    });
+
+    function endSignatureStroke() {
+      sigDrawing = false;
+    }
+
+    signatureCanvas.addEventListener("pointerup", endSignatureStroke);
+    signatureCanvas.addEventListener("pointerleave", endSignatureStroke);
+    signatureCanvas.addEventListener("pointercancel", endSignatureStroke);
+
+    clearSigBtn.addEventListener("click", () => {
+      if (!sigCtx) {
+        return;
+      }
+      const bounds = signatureCanvas.getBoundingClientRect();
+      sigCtx.clearRect(0, 0, bounds.width, bounds.height);
+      sigStarted = false;
+      v2ContinueBtn.classList.remove("visible");
+    });
+
+    window.addEventListener("resize", () => {
+      if (sigReady) {
+        resizeSignatureCanvas();
+      }
+    });
+  </script>
+</body>
+</html>
